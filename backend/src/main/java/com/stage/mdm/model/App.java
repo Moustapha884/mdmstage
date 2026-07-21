@@ -14,8 +14,21 @@ public class App {
     private String packageName;
     private String version;
 
+    /*
+     * apkUrl garde le lien de téléchargement généré par le backend.
+     * Exemple : http://localhost:8080/api/apps/1/apk
+     */
     @Column(length = 1000)
     private String apkUrl;
+
+    /*
+     * apkFileName = nom technique du fichier stocké dans uploads/apks
+     * apkOriginalName = nom original choisi par l'administrateur
+     */
+    private String apkFileName;
+    private String apkOriginalName;
+    private String apkContentType;
+    private Long apkSize;
 
     private String type;
     private String status;
@@ -61,6 +74,38 @@ public class App {
 
     public void setApkUrl(String apkUrl) {
         this.apkUrl = apkUrl;
+    }
+
+    public String getApkFileName() {
+        return apkFileName;
+    }
+
+    public void setApkFileName(String apkFileName) {
+        this.apkFileName = apkFileName;
+    }
+
+    public String getApkOriginalName() {
+        return apkOriginalName;
+    }
+
+    public void setApkOriginalName(String apkOriginalName) {
+        this.apkOriginalName = apkOriginalName;
+    }
+
+    public String getApkContentType() {
+        return apkContentType;
+    }
+
+    public void setApkContentType(String apkContentType) {
+        this.apkContentType = apkContentType;
+    }
+
+    public Long getApkSize() {
+        return apkSize;
+    }
+
+    public void setApkSize(Long apkSize) {
+        this.apkSize = apkSize;
     }
 
     public String getType() {

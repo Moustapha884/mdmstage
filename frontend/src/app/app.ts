@@ -9,7 +9,7 @@ import { CommonModule } from '@angular/common';
   templateUrl: './app.html',
   styleUrl: './app.css'
 })
-export class App implements OnInit, OnDestroy { 
+export class App implements OnInit, OnDestroy {
 
   apiUrl = 'http://localhost:8080/api';
 
@@ -55,8 +55,7 @@ export class App implements OnInit, OnDestroy {
   showAllProfiles = false;
   showAllProfileApps = false;
   showAllApps = false;
-  showAllAlerts = false; 
-  
+  showAllAlerts = false;
 
   editingDeviceId: number | null = null;
   editingProfileId: number | null = null;
@@ -64,6 +63,9 @@ export class App implements OnInit, OnDestroy {
 
   selectedProfileForDeviceForm = '';
   selectedAppIdsForProfile: string[] = [];
+
+  selectedApkFile: File | null = null;
+  selectedApkFileName = '';
 
   newDevice = {
     deviceIdentifier: '',
@@ -83,7 +85,6 @@ export class App implements OnInit, OnDestroy {
     name: '',
     packageName: '',
     version: '',
-    apkUrl: '',
     type: 'REQUIRED',
     status: 'ACTIVE'
   };
@@ -178,10 +179,10 @@ export class App implements OnInit, OnDestroy {
       packageName: 'Nom du paquet',
       version: 'Version',
       apk: 'APK',
-      apkLink: 'Lien APK ou chemin APK',
+      apkLink: 'Fichier APK',
       type: 'Type',
       appList: 'Liste des applications',
-      seeApk: 'Voir APK',
+      seeApk: 'Télécharger APK',
       undefined: 'Non défini',
       addAppBtn: 'Ajouter application',
       updateAppBtn: 'Mettre à jour',
@@ -215,7 +216,12 @@ export class App implements OnInit, OnDestroy {
       low: 'Faible',
       medium: 'Moyenne',
       high: 'Élevée',
-      critical: 'Critique'
+      critical: 'Critique',
+      chooseApkFile: 'Choisir le fichier APK',
+      replaceApkFile: 'Remplacer le fichier APK',
+      selectedFile: 'Fichier sélectionné',
+      keepCurrentApk: 'APK actuel conservé si aucun nouveau fichier n’est choisi',
+      downloadApk: 'Télécharger APK'
     },
 
     ar: {
@@ -307,10 +313,10 @@ export class App implements OnInit, OnDestroy {
       packageName: 'اسم الحزمة',
       version: 'الإصدار',
       apk: 'APK',
-      apkLink: 'رابط APK أو مساره',
+      apkLink: 'ملف APK',
       type: 'النوع',
       appList: 'قائمة التطبيقات',
-      seeApk: 'عرض APK',
+      seeApk: 'تحميل APK',
       undefined: 'غير محدد',
       addAppBtn: 'إضافة تطبيق',
       updateAppBtn: 'تحديث',
@@ -344,7 +350,12 @@ export class App implements OnInit, OnDestroy {
       low: 'ضعيف',
       medium: 'متوسط',
       high: 'مرتفع',
-      critical: 'حرج'
+      critical: 'حرج',
+      chooseApkFile: 'اختيار ملف APK',
+      replaceApkFile: 'استبدال ملف APK',
+      selectedFile: 'الملف المختار',
+      keepCurrentApk: 'سيتم الاحتفاظ بملف APK الحالي إذا لم تختر ملفاً جديداً',
+      downloadApk: 'تحميل APK'
     }
   };
 
@@ -453,7 +464,6 @@ export class App implements OnInit, OnDestroy {
 
   toggleAutoLogout() {
     this.autoLogoutEnabled = !this.autoLogoutEnabled;
-
     localStorage.setItem(this.autoLogoutKey, String(this.autoLogoutEnabled));
 
     if (this.autoLogoutEnabled) {
@@ -478,6 +488,19 @@ export class App implements OnInit, OnDestroy {
     }
   }
 
+  toggleSidebar() {
+    this.isSidebarOpen = !this.isSidebarOpen;
+  }
+
+  closeSidebar() {
+    this.isSidebarOpen = false;
+  }
+
+  setSectionAndCloseSidebar(section: string) {
+    this.setSection(section);
+    this.closeSidebar();
+  }
+
   scrollToForm(formId: string) {
     setTimeout(() => {
       const form = document.getElementById(formId);
@@ -499,117 +522,6 @@ export class App implements OnInit, OnDestroy {
         });
       }
     }, 100);
-  }
-
-  openProfileAppsModal(profile: any): void {
-    this.selectedProfileForAppsView = profile;
-    this.selectedProfileApps = this.getAppsForProfileView(profile.id);
-  }
-
-  closeProfileAppsModal(): void {
-    this.selectedProfileForAppsView = null;
-    this.selectedProfileApps = [];
-  }
-
-  getAppsForProfileView(profileId: number): any[] {
-    const list = (this.profileApps || [])
-      .filter((item: any) => {
-        const currentProfileId =
-          item.profile?.id ??
-          item.mdmProfile?.id ??
-          item.profileId ??
-          item.mdmProfileId ??
-          null;
-
-        return Number(currentProfileId) === Number(profileId);
-      })
-      .map((item: any) => {
-        const appData = item.app ?? item.application ?? item;
-
-        return {
-          profileAppId: item.id ?? item.profileAppId ?? null,
-          appName: appData.name ?? item.appName ?? 'Application',
-          packageName: appData.packageName ?? item.packageName ?? '-',
-          apkUrl: appData.apkUrl ?? item.apkUrl ?? ''
-        };
-      });
-
-    return list.filter((app: any, index: number, self: any[]) =>
-      index === self.findIndex((a: any) =>
-        a.appName === app.appName && a.packageName === app.packageName
-      )
-    );
-  }
-
-  getDeviceStatusLabel(status: string): string {
-    const labels: any = {
-      ACTIVE: this.t('active'),
-      INACTIVE: this.t('inactive'),
-      LOST: this.t('lost')
-    };
-
-    return labels[status] || status || '';
-  }
-
-  getProfileStatusLabel(status: string): string {
-    const labels: any = {
-      ACTIVE: this.t('active'),
-      INACTIVE: this.t('inactive')
-    };
-
-    return labels[status] || status || '';
-  }
-
-  getAppTypeLabel(type: string): string {
-    const labels: any = {
-      REQUIRED: this.t('required'),
-      OPTIONAL: this.t('optional'),
-      BLOCKED: this.t('blocked')
-    };
-
-    return labels[type] || type || '';
-  }
-
-  getAppStatusLabel(status: string): string {
-    const labels: any = {
-      ACTIVE: this.t('appActive'),
-      INACTIVE: this.t('appInactive')
-    };
-
-    return labels[status] || status || '';
-  }
-
-  getAlertStatusLabel(status: string): string {
-    const labels: any = {
-      NEW: this.t('new'),
-      IN_PROGRESS: this.t('inProgress'),
-      RESOLVED: this.t('resolved')
-    };
-
-    return labels[status] || status || '';
-  }
-
-  getSeverityLabel(severity: string): string {
-    const labels: any = {
-      LOW: this.t('low'),
-      MEDIUM: this.t('medium'),
-      HIGH: this.t('high'),
-      CRITICAL: this.t('critical')
-    };
-
-    return labels[severity] || severity || '';
-  }
-
-  getAlertTypeLabel(type: string): string {
-    const labels: any = {
-      DEVICE_LOST: this.currentLanguage === 'ar' ? 'جهاز مفقود' : 'Appareil perdu',
-      PROFILE_NOT_APPLIED: this.currentLanguage === 'ar' ? 'الملف غير مطبق' : 'Profil non appliqué',
-      APP_MISSING: this.currentLanguage === 'ar' ? 'تطبيق مفقود' : 'Application manquante',
-      COMMAND_FAILED: this.currentLanguage === 'ar' ? 'فشل الإجراء' : 'Action échouée',
-      SECURITY_RISK: this.currentLanguage === 'ar' ? 'خطر أمني' : 'Risque de sécurité'
-    };
-
-    return labels[type] || type || '';
   }
 
   showSuccess(message: string) {
@@ -711,6 +623,7 @@ export class App implements OnInit, OnDestroy {
   setSection(section: string) {
     this.activeSection = section;
     this.clearAlert();
+    this.resetShowMoreLists();
 
     if (section === 'dashboard') {
       this.loadAllData();
@@ -809,6 +722,7 @@ export class App implements OnInit, OnDestroy {
       String(app.packageName || '').toLowerCase().includes(search) ||
       String(app.version || '').toLowerCase().includes(search) ||
       String(app.apkUrl || '').toLowerCase().includes(search) ||
+      String(app.apkOriginalName || '').toLowerCase().includes(search) ||
       String(app.type || '').toLowerCase().includes(search) ||
       String(this.getAppTypeLabel(app.type)).toLowerCase().includes(search) ||
       String(app.status || '').toLowerCase().includes(search) ||
@@ -847,13 +761,89 @@ export class App implements OnInit, OnDestroy {
       : this.filteredAlerts.slice(0, this.listLimit);
   }
 
+  getDeviceStatusLabel(status: string): string {
+    const labels: any = {
+      ACTIVE: this.t('active'),
+      INACTIVE: this.t('inactive'),
+      LOST: this.t('lost')
+    };
+
+    return labels[status] || status || '';
+  }
+
+  getProfileStatusLabel(status: string): string {
+    const labels: any = {
+      ACTIVE: this.t('active'),
+      INACTIVE: this.t('inactive')
+    };
+
+    return labels[status] || status || '';
+  }
+
+  getAppTypeLabel(type: string): string {
+    const labels: any = {
+      REQUIRED: this.t('required'),
+      OPTIONAL: this.t('optional'),
+      BLOCKED: this.t('blocked')
+    };
+
+    return labels[type] || type || '';
+  }
+
+  getAppStatusLabel(status: string): string {
+    const labels: any = {
+      ACTIVE: this.t('appActive'),
+      INACTIVE: this.t('appInactive')
+    };
+
+    return labels[status] || status || '';
+  }
+
+  getAlertStatusLabel(status: string): string {
+    const labels: any = {
+      NEW: this.t('new'),
+      IN_PROGRESS: this.t('inProgress'),
+      RESOLVED: this.t('resolved')
+    };
+
+    return labels[status] || status || '';
+  }
+
+  getSeverityLabel(severity: string): string {
+    const labels: any = {
+      LOW: this.t('low'),
+      MEDIUM: this.t('medium'),
+      HIGH: this.t('high'),
+      CRITICAL: this.t('critical')
+    };
+
+    return labels[severity] || severity || '';
+  }
+
+  getAlertTypeLabel(type: string): string {
+    const labels: any = {
+      DEVICE_LOST: this.currentLanguage === 'ar' ? 'جهاز مفقود' : 'Appareil perdu',
+      PROFILE_NOT_APPLIED: this.currentLanguage === 'ar' ? 'الملف غير مطبق' : 'Profil non appliqué',
+      APP_MISSING: this.currentLanguage === 'ar' ? 'تطبيق مفقود' : 'Application manquante',
+      COMMAND_FAILED: this.currentLanguage === 'ar' ? 'فشل الإجراء' : 'Action échouée',
+      SECURITY_RISK: this.currentLanguage === 'ar' ? 'خطر أمني' : 'Risque de sécurité'
+    };
+
+    return labels[type] || type || '';
+  }
+
   getProfileNameForDevice(deviceId: number): string {
-    const item = this.deviceProfiles.find(dp => this.sameId(dp.device?.id, deviceId));
+    const item = this.deviceProfiles.find(dp =>
+      this.sameId(dp.device?.id, deviceId)
+    );
+
     return item?.profile?.name || (this.currentLanguage === 'ar' ? 'لا يوجد ملف' : 'Aucun profil');
   }
 
   getAppsCountForProfile(profileId: number): number {
-    return this.profileApps.filter(pa => this.sameId(pa.profile?.id, profileId)).length;
+    return this.profileApps.filter(pa =>
+      this.sameId(pa.profile?.id, profileId)
+    ).length;
   }
 
   isAppSelected(appId: number): boolean {
@@ -873,6 +863,47 @@ export class App implements OnInit, OnDestroy {
     }
   }
 
+  openProfileAppsModal(profile: any): void {
+    this.selectedProfileForAppsView = profile;
+    this.selectedProfileApps = this.getAppsForProfileView(profile.id);
+  }
+
+  closeProfileAppsModal(): void {
+    this.selectedProfileForAppsView = null;
+    this.selectedProfileApps = [];
+  }
+
+  getAppsForProfileView(profileId: number): any[] {
+    const list = (this.profileApps || [])
+      .filter((item: any) => {
+        const currentProfileId =
+          item.profile?.id ??
+          item.mdmProfile?.id ??
+          item.profileId ??
+          item.mdmProfileId ??
+          null;
+
+        return Number(currentProfileId) === Number(profileId);
+      })
+      .map((item: any) => {
+        const appData = item.app ?? item.application ?? item;
+
+        return {
+          profileAppId: item.id ?? item.profileAppId ?? null,
+          appName: appData.name ?? item.appName ?? 'Application',
+          packageName: appData.packageName ?? item.packageName ?? '-',
+          apkUrl: appData.apkUrl ?? item.apkUrl ?? '',
+          apkOriginalName: appData.apkOriginalName ?? item.apkOriginalName ?? ''
+        };
+      });
+
+    return list.filter((app: any, index: number, self: any[]) =>
+      index === self.findIndex((a: any) =>
+        a.appName === app.appName && a.packageName === app.packageName
+      )
+    );
+  }
+
   loadDevices() {
     this.http.get<any[]>(`${this.apiUrl}/devices`)
       .subscribe({
@@ -880,7 +911,9 @@ export class App implements OnInit, OnDestroy {
           this.devices = data;
         },
         error: () => {
-          this.showError(this.currentLanguage === 'ar' ? 'خطأ أثناء تحميل الأجهزة' : 'Erreur lors du chargement des appareils');
+          this.showError(this.currentLanguage === 'ar'
+            ? 'خطأ أثناء تحميل الأجهزة'
+            : 'Erreur lors du chargement des appareils');
         }
       });
   }
@@ -915,6 +948,7 @@ export class App implements OnInit, OnDestroy {
             }
 
             this.resetDeviceForm();
+
             this.showSuccess(this.currentLanguage === 'ar'
               ? 'تم تعديل الجهاز وتحديث الملف'
               : 'Appareil modifié et profil mis à jour');
@@ -930,7 +964,12 @@ export class App implements OnInit, OnDestroy {
         .subscribe({
           next: (createdDevice) => {
             this.devices = [...this.devices, createdDevice];
-            this.assignProfileToDevice(createdDevice.id, this.selectedProfileForDeviceForm);
+
+            this.assignProfileToDevice(
+              createdDevice.id,
+              this.selectedProfileForDeviceForm
+            );
+
             this.resetDeviceForm();
 
             this.showSuccess(this.currentLanguage === 'ar'
@@ -952,7 +991,10 @@ export class App implements OnInit, OnDestroy {
       {}
     ).subscribe({
       next: (savedDeviceProfile) => {
-        this.deviceProfiles = this.deviceProfiles.filter(dp => !this.sameId(dp.device?.id, deviceId));
+        this.deviceProfiles = this.deviceProfiles.filter(dp =>
+          !this.sameId(dp.device?.id, deviceId)
+        );
+
         this.deviceProfiles = [...this.deviceProfiles, savedDeviceProfile];
       },
       error: () => {
@@ -974,7 +1016,9 @@ export class App implements OnInit, OnDestroy {
       status: device.status
     };
 
-    const existingProfile = this.deviceProfiles.find(dp => this.sameId(dp.device?.id, device.id));
+    const existingProfile = this.deviceProfiles.find(dp =>
+      this.sameId(dp.device?.id, device.id)
+    );
 
     this.selectedProfileForDeviceForm = existingProfile?.profile?.id
       ? String(existingProfile.profile.id)
@@ -1002,6 +1046,7 @@ export class App implements OnInit, OnDestroy {
 
   cancelEditDevice() {
     this.resetDeviceForm();
+
     this.showSuccess(this.currentLanguage === 'ar'
       ? 'تم إلغاء تعديل الجهاز'
       : 'Modification appareil annulée');
@@ -1039,6 +1084,7 @@ export class App implements OnInit, OnDestroy {
           this.devices = oldDevices;
           this.deviceProfiles = oldDeviceProfiles;
           this.alerts = oldAlerts;
+
           this.showError(this.currentLanguage === 'ar'
             ? 'خطأ أثناء حذف الجهاز'
             : 'Erreur lors de la suppression de l’appareil');
@@ -1094,6 +1140,7 @@ export class App implements OnInit, OnDestroy {
             }
 
             this.resetProfileForm();
+
             this.showSuccess(this.currentLanguage === 'ar'
               ? 'تم تعديل الملف مع تطبيقاته'
               : 'Profil MDM modifié avec ses applications');
@@ -1109,6 +1156,7 @@ export class App implements OnInit, OnDestroy {
         .subscribe({
           next: (createdProfile) => {
             this.profiles = [...this.profiles, createdProfile];
+
             this.saveAppsForProfile(createdProfile.id);
             this.resetProfileForm();
 
@@ -1135,7 +1183,10 @@ export class App implements OnInit, OnDestroy {
       body
     ).subscribe({
       next: (savedProfileApps) => {
-        this.profileApps = this.profileApps.filter(pa => !this.sameId(pa.profile?.id, profileId));
+        this.profileApps = this.profileApps.filter(pa =>
+          !this.sameId(pa.profile?.id, profileId)
+        );
+
         this.profileApps = [...this.profileApps, ...savedProfileApps];
 
         if (
@@ -1192,6 +1243,7 @@ export class App implements OnInit, OnDestroy {
 
   cancelEditProfile() {
     this.resetProfileForm();
+
     this.showSuccess(this.currentLanguage === 'ar'
       ? 'تم إلغاء تعديل الملف'
       : 'Modification profil annulée');
@@ -1233,6 +1285,7 @@ export class App implements OnInit, OnDestroy {
           this.profiles = oldProfiles;
           this.profileApps = oldProfileApps;
           this.deviceProfiles = oldDeviceProfiles;
+
           this.showError(this.currentLanguage === 'ar'
             ? 'خطأ أثناء حذف الملف'
             : 'Erreur lors de la suppression du profil');
@@ -1254,12 +1307,42 @@ export class App implements OnInit, OnDestroy {
       });
   }
 
+  onApkFileSelected(event: Event) {
+    const input = event.target as HTMLInputElement;
+
+    if (!input.files || input.files.length === 0) {
+      this.selectedApkFile = null;
+      this.selectedApkFileName = '';
+      return;
+    }
+
+    const file = input.files[0];
+
+    if (!file.name.toLowerCase().endsWith('.apk')) {
+      this.selectedApkFile = null;
+      this.selectedApkFileName = '';
+      input.value = '';
+
+      this.showError(this.currentLanguage === 'ar'
+        ? 'يرجى اختيار ملف بصيغة APK فقط'
+        : 'Veuillez choisir uniquement un fichier APK');
+
+      return;
+    }
+
+    this.selectedApkFile = file;
+    this.selectedApkFileName = file.name;
+
+    this.showSuccess(this.currentLanguage === 'ar'
+      ? 'تم اختيار ملف APK'
+      : 'Fichier APK sélectionné');
+  }
+
   saveApp() {
     if (
       this.isEmpty(this.newApp.name) ||
       this.isEmpty(this.newApp.packageName) ||
       this.isEmpty(this.newApp.version) ||
-      this.isEmpty(this.newApp.apkUrl) ||
       this.isEmpty(this.newApp.type) ||
       this.isEmpty(this.newApp.status)
     ) {
@@ -1269,8 +1352,27 @@ export class App implements OnInit, OnDestroy {
       return;
     }
 
+    if (!this.editingAppId && !this.selectedApkFile) {
+      this.showError(this.currentLanguage === 'ar'
+        ? 'يرجى اختيار ملف APK'
+        : 'Veuillez choisir un fichier APK');
+      return;
+    }
+
+    const formData = new FormData();
+
+    formData.append('name', this.newApp.name);
+    formData.append('packageName', this.newApp.packageName);
+    formData.append('version', this.newApp.version);
+    formData.append('type', this.newApp.type);
+    formData.append('status', this.newApp.status);
+
+    if (this.selectedApkFile) {
+      formData.append('apkFile', this.selectedApkFile);
+    }
+
     if (this.editingAppId) {
-      this.http.put<any>(`${this.apiUrl}/apps/${this.editingAppId}`, this.newApp)
+      this.http.put<any>(`${this.apiUrl}/apps/${this.editingAppId}`, formData)
         .subscribe({
           next: (updatedApp) => {
             this.apps = this.apps.map(app =>
@@ -1289,13 +1391,16 @@ export class App implements OnInit, OnDestroy {
             });
 
             if (this.selectedProfileForAppsView) {
-              this.selectedProfileApps = this.getAppsForProfileView(this.selectedProfileForAppsView.id);
+              this.selectedProfileApps = this.getAppsForProfileView(
+                this.selectedProfileForAppsView.id
+              );
             }
 
             this.resetAppForm();
+
             this.showSuccess(this.currentLanguage === 'ar'
-              ? 'تم تعديل التطبيق بنجاح'
-              : 'Application modifiée avec succès');
+              ? 'تم تعديل التطبيق وملف APK بنجاح'
+              : 'Application et fichier APK modifiés avec succès');
           },
           error: () => {
             this.showError(this.currentLanguage === 'ar'
@@ -1304,15 +1409,15 @@ export class App implements OnInit, OnDestroy {
           }
         });
     } else {
-      this.http.post<any>(`${this.apiUrl}/apps`, this.newApp)
+      this.http.post<any>(`${this.apiUrl}/apps`, formData)
         .subscribe({
           next: (createdApp) => {
             this.apps = [...this.apps, createdApp];
             this.resetAppForm();
 
             this.showSuccess(this.currentLanguage === 'ar'
-              ? 'تمت إضافة التطبيق بنجاح'
-              : 'Application ajoutée avec succès');
+              ? 'تمت إضافة التطبيق مع ملف APK بنجاح'
+              : 'Application ajoutée avec fichier APK');
           },
           error: () => {
             this.showError(this.currentLanguage === 'ar'
@@ -1330,10 +1435,12 @@ export class App implements OnInit, OnDestroy {
       name: app.name,
       packageName: app.packageName,
       version: app.version,
-      apkUrl: app.apkUrl,
       type: app.type,
       status: app.status
     };
+
+    this.selectedApkFile = null;
+    this.selectedApkFileName = app.apkOriginalName || '';
 
     this.showSuccess(this.currentLanguage === 'ar'
       ? 'تم تفعيل وضع تعديل التطبيق'
@@ -1344,19 +1451,27 @@ export class App implements OnInit, OnDestroy {
 
   resetAppForm() {
     this.editingAppId = null;
+    this.selectedApkFile = null;
+    this.selectedApkFileName = '';
 
     this.newApp = {
       name: '',
       packageName: '',
       version: '',
-      apkUrl: '',
       type: 'REQUIRED',
       status: 'ACTIVE'
     };
+
+    const apkInput = document.getElementById('apk-file-input') as HTMLInputElement;
+
+    if (apkInput) {
+      apkInput.value = '';
+    }
   }
 
   cancelEditApp() {
     this.resetAppForm();
+
     this.showSuccess(this.currentLanguage === 'ar'
       ? 'تم إلغاء تعديل التطبيق'
       : 'Modification application annulée');
@@ -1432,7 +1547,9 @@ export class App implements OnInit, OnDestroy {
 
     const oldProfileApps = [...this.profileApps];
 
-    this.profileApps = this.profileApps.filter(profileApp => !this.sameId(profileApp.id, id));
+    this.profileApps = this.profileApps.filter(profileApp =>
+      !this.sameId(profileApp.id, id)
+    );
 
     if (this.selectedProfileForAppsView) {
       this.selectedProfileApps = this.getAppsForProfileView(this.selectedProfileForAppsView.id);
@@ -1590,7 +1707,9 @@ export class App implements OnInit, OnDestroy {
 
     const oldAlerts = [...this.alerts];
 
-    this.alerts = this.alerts.filter(alert => !this.sameId(alert.id, id));
+    this.alerts = this.alerts.filter(alert =>
+      !this.sameId(alert.id, id)
+    );
 
     this.http.delete(`${this.apiUrl}/alerts/${id}`)
       .subscribe({
@@ -1601,22 +1720,11 @@ export class App implements OnInit, OnDestroy {
         },
         error: () => {
           this.alerts = oldAlerts;
+
           this.showError(this.currentLanguage === 'ar'
             ? 'خطأ أثناء حذف المشكلة'
             : 'Erreur lors de la suppression du problème');
         }
       });
-  }
-  toggleSidebar() {
-    this.isSidebarOpen = !this.isSidebarOpen;
-  }
-
-  closeSidebar() {
-    this.isSidebarOpen = false;
-  }
-
-  setSectionAndCloseSidebar(section: string) {
-    this.setSection(section);
-    this.closeSidebar();
   }
 }

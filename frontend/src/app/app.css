@@ -2234,3 +2234,151 @@ body.dark-mode app-root {
   color: #cbd5e1 !important;
   border-color: #64748b !important;
 }
+/* =====================================================
+   UPLOAD APK
+===================================================== */
+
+.apk-upload-box {
+  width: 100%;
+  background: #f8fafc;
+  border: 1px dashed #94a3b8;
+  border-radius: 14px;
+  padding: 14px;
+  margin-bottom: 14px;
+}
+
+.apk-upload-box label {
+  display: block;
+  font-weight: 800;
+  color: #0f172a;
+  margin-bottom: 10px;
+}
+
+.apk-upload-box input[type="file"] {
+  width: 100%;
+  padding: 11px;
+  background: #ffffff;
+  border: 1px solid #d7dde7;
+  border-radius: 12px;
+  margin-bottom: 8px;
+}
+
+.apk-upload-box small {
+  display: block;
+  color: #475569;
+  line-height: 1.5;
+}
+
+:host-context(.dark-mode) .apk-upload-box {
+  background: #0f172a;
+  border-color: #475569;
+}
+
+:host-context(.dark-mode) .apk-upload-box label {
+  color: #f8fafc;
+}
+
+:host-context(.dark-mode) .apk-upload-box input[type="file"] {
+  background: #1e293b;
+  color: #e5e7eb;
+  border-color: #475569;
+}
+
+:host-context(.dark-mode) .apk-upload-box small {
+  color: #cbd5e1;
+}
+/* =====================================================
+   UPLOAD APK
+===================================================== */
+
+.apk-upload-box {
+  width: 100%;
+  background: #f8fafc;
+  border: 1px dashed #94a3b8;
+  border-radius: 14px;
+  padding: 14px;
+  margin-bottom: 14px;
+}
+
+.apk-upload-box label {
+  display: block;
+  font-weight: 800;
+  color: #0f172a;
+  margin-bottom: 10px;
+}
+
+.apk-upload-box input[type="file"] {
+  width: 100%;
+  padding: 11px;
+  background: #ffffff;
+  border: 1px solid #d7dde7;
+  border-radius: 12px;
+  margin-bottom: 8px;
+}
+
+.apk-upload-box small {
+  display: block;
+  color: #475569;
+  line-height: 1.5;
+}
+
+.apk-link-btn {
+  display: inline-block;
+  font-weight: 800;
+  color: #2563eb;
+  text-decoration: underline;
+}
+
+:host-context(.dark-mode) .apk-upload-box {
+  background: #0f172a;
+  border-color: #475569;
+}
+
+:host-context(.dark-mode) .apk-upload-box label {
+  color: #f8fafc;
+}
+
+:host-context(.dark-mode) .apk-upload-box input[type="file"] {
+  background: #1e293b;
+  color: #e5e7eb;
+  border-color: #475569;
+}
+
+:host-context(.dark-mode) .apk-upload-box small {
+  color: #cbd5e1;
+}
+/* Bouton Télécharger APK : petit et transparent */
+.apk-link-btn {
+  display: inline-block !important;
+  width: auto !important;
+  min-width: 0 !important;
+  height: auto !important;
+  padding: 4px 10px !important;
+
+  background: transparent !important;
+  color: #2563eb !important;
+
+  border: 1px solid #2563eb !important;
+  border-radius: 8px !important;
+
+  font-size: 12px !important;
+  font-weight: 700 !important;
+  text-decoration: none !important;
+
+  box-shadow: none !important;
+}
+
+.apk-link-btn:hover {
+  background: #eff6ff !important;
+  color: #1d4ed8 !important;
+}
+
+td .apk-link-btn {
+  margin-bottom: 4px !important;
+}
+
+td small {
+  display: block !important;
+  font-size: 12px !important;
+  color: #64748b !important;
+}

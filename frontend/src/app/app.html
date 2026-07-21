@@ -56,7 +56,9 @@
       <a (click)="setSectionAndCloseSidebar('alerts')" [class.active]="activeSection === 'alerts'">{{ t('alerts') }}</a>
     </nav>
 
-    <button type="button" class="logout-btn" (click)="logout(); closeSidebar()">{{ t('logout') }}</button>
+    <button type="button" class="logout-btn" (click)="logout(); closeSidebar()">
+      {{ t('logout') }}
+    </button>
   </aside>
 
   <main class="main-content">
@@ -182,7 +184,9 @@
                 <td>{{ i + 1 }}</td>
                 <td>{{ device.deviceIdentifier }}</td>
                 <td>{{ getProfileNameForDevice(device.id) }}</td>
-                <td><span class="status">{{ getDeviceStatusLabel(device.status) }}</span></td>
+                <td>
+                  <span class="status">{{ getDeviceStatusLabel(device.status) }}</span>
+                </td>
               </tr>
             </tbody>
           </table>
@@ -312,7 +316,9 @@
                 <td>{{ device.model }}</td>
                 <td>{{ device.os }}</td>
                 <td>{{ getProfileNameForDevice(device.id) }}</td>
-                <td><span class="status">{{ getDeviceStatusLabel(device.status) }}</span></td>
+                <td>
+                  <span class="status">{{ getDeviceStatusLabel(device.status) }}</span>
+                </td>
                 <td class="actions-cell">
                   <div class="action-buttons">
                     <button type="button" class="edit-btn" (click)="editDevice(device)">{{ t('edit') }}</button>
@@ -415,7 +421,9 @@
                 <td>{{ profile.name }}</td>
                 <td>{{ profile.description }}</td>
                 <td>{{ getAppsCountForProfile(profile.id) }}</td>
-                <td><span class="status">{{ getProfileStatusLabel(profile.status) }}</span></td>
+                <td>
+                  <span class="status">{{ getProfileStatusLabel(profile.status) }}</span>
+                </td>
                 <td class="actions-cell profile-actions-cell">
                   <div class="action-buttons profile-action-buttons">
 
@@ -425,35 +433,14 @@
                       [title]="t('viewApps')"
                       (click)="openProfileAppsModal(profile)"
                     >
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="18"
-                        height="18"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="2.3"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                      >
-                        <path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"></path>
-                        <circle cx="12" cy="12" r="3"></circle>
-                      </svg>
+                      👁
                     </button>
 
-                    <button
-                      type="button"
-                      class="edit-btn"
-                      (click)="editProfile(profile)"
-                    >
+                    <button type="button" class="edit-btn" (click)="editProfile(profile)">
                       {{ t('edit') }}
                     </button>
 
-                    <button
-                      type="button"
-                      class="delete-btn"
-                      (click)="deleteProfile(profile.id)"
-                    >
+                    <button type="button" class="delete-btn" (click)="deleteProfile(profile.id)">
                       {{ t('delete') }}
                     </button>
 
@@ -502,7 +489,7 @@
                 </div>
 
                 <a *ngIf="app.apkUrl" [href]="app.apkUrl" target="_blank" class="apk-link-btn">
-                  {{ t('apk') }}
+                  {{ t('downloadApk') }}
                 </a>
 
               </div>
@@ -528,11 +515,44 @@
         <h2>{{ editingAppId ? t('appTitleEdit') : t('appTitleAdd') }}</h2>
 
         <div class="form-grid">
-          <input type="text" [placeholder]="t('appName')" [(ngModel)]="newApp.name">
-          <input type="text" [placeholder]="t('packageName')" [(ngModel)]="newApp.packageName">
-          <input type="text" [placeholder]="t('version')" [(ngModel)]="newApp.version">
+          <input
+            type="text"
+            [placeholder]="t('appName')"
+            [(ngModel)]="newApp.name"
+          >
 
-          <input type="text" [placeholder]="t('apkLink')" [(ngModel)]="newApp.apkUrl">
+          <input
+            type="text"
+            [placeholder]="t('packageName')"
+            [(ngModel)]="newApp.packageName"
+          >
+
+          <input
+            type="text"
+            [placeholder]="t('version')"
+            [(ngModel)]="newApp.version"
+          >
+
+          <div class="apk-upload-box">
+            <label for="apk-file-input">
+              {{ editingAppId ? t('replaceApkFile') : t('chooseApkFile') }}
+            </label>
+
+            <input
+              id="apk-file-input"
+              type="file"
+              accept=".apk,application/vnd.android.package-archive"
+              (change)="onApkFileSelected($event)"
+            >
+
+            <small *ngIf="selectedApkFileName">
+              {{ t('selectedFile') }} : {{ selectedApkFileName }}
+            </small>
+
+            <small *ngIf="editingAppId && !selectedApkFileName">
+              {{ t('keepCurrentApk') }}
+            </small>
+          </div>
 
           <select [(ngModel)]="newApp.type">
             <option value="REQUIRED">{{ t('required') }}</option>
@@ -549,7 +569,12 @@
             {{ editingAppId ? t('updateAppBtn') : t('addAppBtn') }}
           </button>
 
-          <button type="button" *ngIf="editingAppId" class="cancel-btn" (click)="cancelEditApp()">
+          <button
+            type="button"
+            *ngIf="editingAppId"
+            class="cancel-btn"
+            (click)="cancelEditApp()"
+          >
             {{ t('cancel') }}
           </button>
         </div>
@@ -558,10 +583,18 @@
       <section class="content-card">
         <div class="section-header">
           <h2>{{ t('appList') }}</h2>
-          <button type="button" class="refresh-btn" (click)="loadApps()">{{ t('refresh') }}</button>
+
+          <button type="button" class="refresh-btn" (click)="loadApps()">
+            {{ t('refresh') }}
+          </button>
         </div>
 
-        <input class="search-input" type="text" [placeholder]="t('searchApp')" [(ngModel)]="appSearch">
+        <input
+          class="search-input"
+          type="text"
+          [placeholder]="t('searchApp')"
+          [(ngModel)]="appSearch"
+        >
 
         <div class="table-wrapper">
           <table>
@@ -584,18 +617,43 @@
                 <td>{{ app.name }}</td>
                 <td>{{ app.packageName }}</td>
                 <td>{{ app.version }}</td>
+
                 <td>
-                  <span *ngIf="!app.apkUrl">{{ t('undefined') }}</span>
-                  <a *ngIf="app.apkUrl" [href]="app.apkUrl" target="_blank">
-                    {{ t('seeApk') }}
+                  <span *ngIf="!app.apkUrl">
+                    {{ t('undefined') }}
+                  </span>
+
+                  <a
+                    *ngIf="app.apkUrl"
+                    [href]="app.apkUrl"
+                    target="_blank"
+                    class="apk-link-btn"
+                  >
+                    {{ t('downloadApk') }}
                   </a>
+
+                  <small *ngIf="app.apkOriginalName">
+                    {{ app.apkOriginalName }}
+                  </small>
                 </td>
+
                 <td>{{ getAppTypeLabel(app.type) }}</td>
-                <td><span class="status">{{ getAppStatusLabel(app.status) }}</span></td>
+
+                <td>
+                  <span class="status">
+                    {{ getAppStatusLabel(app.status) }}
+                  </span>
+                </td>
+
                 <td class="actions-cell">
                   <div class="action-buttons">
-                    <button type="button" class="edit-btn" (click)="editApp(app)">{{ t('edit') }}</button>
-                    <button type="button" class="delete-btn" (click)="deleteApp(app.id)">{{ t('delete') }}</button>
+                    <button type="button" class="edit-btn" (click)="editApp(app)">
+                      {{ t('edit') }}
+                    </button>
+
+                    <button type="button" class="delete-btn" (click)="deleteApp(app.id)">
+                      {{ t('delete') }}
+                    </button>
                   </div>
                 </td>
               </tr>
@@ -609,7 +667,9 @@
           </button>
         </div>
 
-        <p class="empty" *ngIf="filteredApps.length === 0">{{ t('noApp') }}</p>
+        <p class="empty" *ngIf="filteredApps.length === 0">
+          {{ t('noApp') }}
+        </p>
       </section>
 
     </div>
