@@ -1,0 +1,741 @@
+<div class="login-page" *ngIf="!isLoggedIn">
+
+  <div class="login-box">
+
+    <div class="login-left">
+      <h1>{{ t('appTitle') }}</h1>
+      <p>{{ t('appDescription') }}</p>
+    </div>
+
+    <div class="login-right">
+      <h2>{{ t('loginTitle') }}</h2>
+      <p class="subtitle">{{ t('loginSubtitle') }}</p>
+
+      <input type="text" [placeholder]="t('username')" [(ngModel)]="username">
+      <input type="password" [placeholder]="t('password')" [(ngModel)]="password">
+
+      <button type="button" (click)="login()">{{ t('loginButton') }}</button>
+
+      <p class="message">{{ message }}</p>
+    </div>
+
+  </div>
+
+</div>
+
+
+<div class="dashboard-page" *ngIf="isLoggedIn">
+
+  <header class="mobile-header">
+    <button
+      type="button"
+      class="hamburger-btn"
+      (click)="toggleSidebar()"
+      aria-label="Ouvrir le menu"
+    >
+      ☰
+    </button>
+
+    <strong>MDM</strong>
+  </header>
+
+  <div
+    class="sidebar-backdrop"
+    [class.show]="isSidebarOpen"
+    (click)="closeSidebar()"
+  ></div>
+
+  <aside class="sidebar" [class.sidebar-open]="isSidebarOpen">
+    <h2>MDM</h2>
+
+    <nav>
+      <a (click)="setSectionAndCloseSidebar('dashboard')" [class.active]="activeSection === 'dashboard'">{{ t('dashboard') }}</a>
+      <a (click)="setSectionAndCloseSidebar('devices')" [class.active]="activeSection === 'devices'">{{ t('devices') }}</a>
+      <a (click)="setSectionAndCloseSidebar('profiles')" [class.active]="activeSection === 'profiles'">{{ t('profiles') }}</a>
+      <a (click)="setSectionAndCloseSidebar('apps')" [class.active]="activeSection === 'apps'">{{ t('apps') }}</a>
+      <a (click)="setSectionAndCloseSidebar('alerts')" [class.active]="activeSection === 'alerts'">{{ t('alerts') }}</a>
+    </nav>
+
+    <button type="button" class="logout-btn" (click)="logout(); closeSidebar()">{{ t('logout') }}</button>
+  </aside>
+
+  <main class="main-content">
+
+    <header class="topbar">
+      <div class="topbar-title">
+        <h1>{{ t('pageTitle') }}</h1>
+        <p>{{ t('welcomeAdmin') }} — {{ message }}</p>
+      </div>
+
+      <div class="topbar-actions">
+
+        <button
+          type="button"
+          class="icon-topbar-btn"
+          [title]="isDarkMode ? t('lightMode') : t('darkMode')"
+          (click)="toggleTheme()"
+        >
+          {{ isDarkMode ? '☀️' : '🌙' }}
+        </button>
+
+        <button
+          type="button"
+          class="icon-topbar-btn language-icon-btn"
+          [title]="currentLanguage === 'fr' ? 'العربية' : 'Français'"
+          (click)="toggleLanguage()"
+        >
+          {{ currentLanguage === 'fr' ? 'ع' : 'FR' }}
+        </button>
+
+        <button
+          type="button"
+          class="auto-logout-btn"
+          [ngClass]="autoLogoutEnabled ? 'auto-logout-active' : 'auto-logout-inactive'"
+          (click)="toggleAutoLogout()"
+        >
+          {{ autoLogoutEnabled ? t('autoLogoutOn') : t('autoLogoutOff') }}
+        </button>
+
+        <div class="admin-badge">{{ t('admin') }}</div>
+      </div>
+    </header>
+
+    <div
+      class="alert-box"
+      *ngIf="alertMessage"
+      [class.success]="alertType === 'success'"
+      [class.error]="alertType === 'error'"
+    >
+      {{ alertMessage }}
+    </div>
+
+
+    <!-- TABLEAU DE BORD -->
+    <div *ngIf="activeSection === 'dashboard'">
+
+      <section class="dashboard-hero">
+        <div>
+          <h2>{{ t('adminSpace') }}</h2>
+          <p>{{ t('adminDescription') }}</p>
+        </div>
+
+        <div class="hero-status">
+          <span>{{ t('systemStatus') }}</span>
+          <strong>{{ t('online') }}</strong>
+        </div>
+      </section>
+
+      <section class="stats">
+        <div class="stat-card">
+          <h3>{{ devices.length }}</h3>
+          <p>{{ t('devices') }}</p>
+        </div>
+
+        <div class="stat-card">
+          <h3>{{ profiles.length }}</h3>
+          <p>{{ t('profiles') }}</p>
+        </div>
+
+        <div class="stat-card">
+          <h3>{{ apps.length }}</h3>
+          <p>{{ t('apps') }}</p>
+        </div>
+
+        <div class="stat-card">
+          <h3>{{ deviceProfiles.length }}</h3>
+          <p>{{ t('assignedProfiles') }}</p>
+        </div>
+
+        <div class="stat-card">
+          <h3>{{ alerts.length }}</h3>
+          <p>{{ t('alerts') }}</p>
+        </div>
+      </section>
+
+      <section class="quick-actions">
+        <button type="button" (click)="setSection('devices')">{{ t('addDevice') }}</button>
+        <button type="button" (click)="setSection('profiles')">{{ t('createProfile') }}</button>
+        <button type="button" (click)="setSection('apps')">{{ t('manageApps') }}</button>
+        <button type="button" (click)="setSection('alerts')">{{ t('treatProblems') }}</button>
+      </section>
+
+      <section class="dashboard-grid">
+
+        <div class="dashboard-card">
+          <div class="card-title">
+            <h2>{{ t('recentDevices') }}</h2>
+            <button type="button" (click)="setSection('devices')">{{ t('seeAll') }}</button>
+          </div>
+
+          <table class="mini-table">
+            <thead>
+              <tr>
+                <th>{{ t('number') }}</th>
+                <th>{{ t('identifier') }}</th>
+                <th>{{ t('profile') }}</th>
+                <th>{{ t('status') }}</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              <tr *ngFor="let device of devices.slice().reverse().slice(0, 5); let i = index">
+                <td>{{ i + 1 }}</td>
+                <td>{{ device.deviceIdentifier }}</td>
+                <td>{{ getProfileNameForDevice(device.id) }}</td>
+                <td><span class="status">{{ getDeviceStatusLabel(device.status) }}</span></td>
+              </tr>
+            </tbody>
+          </table>
+
+          <p class="empty" *ngIf="devices.length === 0">{{ t('noRegisteredDevice') }}</p>
+        </div>
+
+
+        <div class="dashboard-card">
+          <div class="card-title">
+            <h2>{{ t('recentProblems') }}</h2>
+            <button type="button" (click)="setSection('alerts')">{{ t('seeAll') }}</button>
+          </div>
+
+          <table class="mini-table">
+            <thead>
+              <tr>
+                <th>{{ t('device') }}</th>
+                <th>{{ t('problemType') }}</th>
+                <th>{{ t('severity') }}</th>
+                <th>{{ t('status') }}</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              <tr *ngFor="let alert of alerts.slice().reverse().slice(0, 5)">
+                <td>{{ alert.device?.deviceIdentifier }}</td>
+                <td>{{ getAlertTypeLabel(alert.type) }}</td>
+                <td>
+                  <span
+                    class="severity-status"
+                    [class.low]="alert.severity === 'LOW'"
+                    [class.medium]="alert.severity === 'MEDIUM'"
+                    [class.high]="alert.severity === 'HIGH'"
+                    [class.critical]="alert.severity === 'CRITICAL'"
+                  >
+                    {{ getSeverityLabel(alert.severity) }}
+                  </span>
+                </td>
+                <td>
+                  <span
+                    class="alert-status"
+                    [class.new]="alert.status === 'NEW'"
+                    [class.progress]="alert.status === 'IN_PROGRESS'"
+                    [class.resolved]="alert.status === 'RESOLVED'"
+                  >
+                    {{ getAlertStatusLabel(alert.status) }}
+                  </span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+
+          <p class="empty" *ngIf="alerts.length === 0">{{ t('noRegisteredProblem') }}</p>
+        </div>
+
+      </section>
+
+    </div>
+
+
+    <!-- APPAREILS -->
+    <div *ngIf="activeSection === 'devices'">
+
+      <section id="device-form" class="content-card form-anchor">
+        <h2>{{ editingDeviceId ? t('editDeviceTitle') : t('addDeviceTitle') }}</h2>
+
+        <p class="subtitle">{{ t('deviceSubtitle') }}</p>
+
+        <div class="form-grid">
+          <input type="text" [placeholder]="t('deviceIdentifierPlaceholder')" [(ngModel)]="newDevice.deviceIdentifier">
+          <input type="text" [placeholder]="t('brandPlaceholder')" [(ngModel)]="newDevice.brand">
+          <input type="text" [placeholder]="t('modelPlaceholder')" [(ngModel)]="newDevice.model">
+          <input type="text" [placeholder]="t('osPlaceholder')" [(ngModel)]="newDevice.os">
+
+          <select [(ngModel)]="newDevice.status">
+            <option value="ACTIVE">{{ t('active') }}</option>
+            <option value="INACTIVE">{{ t('inactive') }}</option>
+            <option value="LOST">{{ t('lost') }}</option>
+          </select>
+
+          <select [(ngModel)]="selectedProfileForDeviceForm">
+            <option value="">{{ t('chooseProfile') }}</option>
+            <option *ngFor="let profile of profiles" [value]="profile.id">
+              {{ profile.name }}
+            </option>
+          </select>
+
+          <button type="button" (click)="saveDevice()">
+            {{ editingDeviceId ? t('updateDeviceBtn') : t('addDeviceBtn') }}
+          </button>
+
+          <button type="button" *ngIf="editingDeviceId" class="cancel-btn" (click)="cancelEditDevice()">
+            {{ t('cancel') }}
+          </button>
+        </div>
+      </section>
+
+      <section class="content-card">
+        <div class="section-header">
+          <h2>{{ t('devices') }}</h2>
+          <button type="button" class="refresh-btn" (click)="loadDevices()">{{ t('refresh') }}</button>
+        </div>
+
+        <input class="search-input" type="text" [placeholder]="t('searchDevice')" [(ngModel)]="deviceSearch">
+
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>{{ t('number') }}</th>
+                <th>{{ t('identifier') }}</th>
+                <th>{{ t('brand') }}</th>
+                <th>{{ t('model') }}</th>
+                <th>{{ t('os') }}</th>
+                <th>{{ t('profileMdm') }}</th>
+                <th>{{ t('status') }}</th>
+                <th class="actions-cell">{{ t('actions') }}</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              <tr *ngFor="let device of visibleDevices; let i = index">
+                <td>{{ i + 1 }}</td>
+                <td>{{ device.deviceIdentifier }}</td>
+                <td>{{ device.brand }}</td>
+                <td>{{ device.model }}</td>
+                <td>{{ device.os }}</td>
+                <td>{{ getProfileNameForDevice(device.id) }}</td>
+                <td><span class="status">{{ getDeviceStatusLabel(device.status) }}</span></td>
+                <td class="actions-cell">
+                  <div class="action-buttons">
+                    <button type="button" class="edit-btn" (click)="editDevice(device)">{{ t('edit') }}</button>
+                    <button type="button" class="delete-btn" (click)="deleteDevice(device.id)">{{ t('delete') }}</button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="show-more-box" *ngIf="filteredDevices.length > listLimit">
+          <button type="button" class="show-more-btn" (click)="showAllDevices = !showAllDevices">
+            {{ showAllDevices ? t('showLess') : t('showMore') }}
+          </button>
+        </div>
+
+        <p class="empty" *ngIf="filteredDevices.length === 0">{{ t('noDevice') }}</p>
+      </section>
+
+    </div>
+
+
+    <!-- PROFILS MDM -->
+    <div *ngIf="activeSection === 'profiles'">
+
+      <section id="profile-form" class="content-card form-anchor">
+        <h2>{{ editingProfileId ? t('profileTitleEdit') : t('profileTitleAdd') }}</h2>
+
+        <p class="subtitle">{{ t('profileSubtitle') }}</p>
+
+        <div class="form-grid profile-form-grid">
+          <input type="text" [placeholder]="t('profileName')" [(ngModel)]="newProfile.name">
+          <input type="text" [placeholder]="t('description')" [(ngModel)]="newProfile.description">
+
+          <select [(ngModel)]="newProfile.status">
+            <option value="ACTIVE">{{ t('active') }}</option>
+            <option value="INACTIVE">{{ t('inactive') }}</option>
+          </select>
+
+          <div class="apps-selector full-width">
+            <h3>{{ t('profileAppsTitle') }}</h3>
+            <p>{{ t('profileAppsSubtitle') }}</p>
+
+            <div class="apps-checkbox-grid">
+              <label class="app-check-card" *ngFor="let app of sortedApps">
+                <input
+                  type="checkbox"
+                  [checked]="isAppSelected(app.id)"
+                  (change)="toggleAppForProfile(app.id, $event)"
+                >
+
+                <div>
+                  <strong>{{ app.name }}</strong>
+                  <span>{{ app.packageName }}</span>
+                  <span *ngIf="app.apkUrl">{{ t('availableApk') }}</span>
+                  <span *ngIf="!app.apkUrl">{{ t('noApkDefined') }}</span>
+                </div>
+              </label>
+            </div>
+          </div>
+
+          <div class="form-actions full-width">
+            <button type="button" (click)="saveProfile()">
+              {{ editingProfileId ? t('updateProfileBtn') : t('addProfileBtn') }}
+            </button>
+
+            <button type="button" *ngIf="editingProfileId" class="cancel-btn" (click)="cancelEditProfile()">
+              {{ t('cancel') }}
+            </button>
+          </div>
+        </div>
+      </section>
+
+
+      <section class="content-card">
+        <div class="section-header">
+          <h2>{{ t('profilesList') }}</h2>
+          <button type="button" class="refresh-btn" (click)="loadProfiles()">{{ t('refresh') }}</button>
+        </div>
+
+        <input class="search-input" type="text" [placeholder]="t('searchProfile')" [(ngModel)]="profileSearch">
+
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>{{ t('number') }}</th>
+                <th>{{ t('profileName') }}</th>
+                <th>{{ t('description') }}</th>
+                <th>{{ t('appsCount') }}</th>
+                <th>{{ t('status') }}</th>
+                <th class="actions-cell profile-actions-title">{{ t('actions') }}</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              <tr *ngFor="let profile of visibleProfiles; let i = index">
+                <td>{{ i + 1 }}</td>
+                <td>{{ profile.name }}</td>
+                <td>{{ profile.description }}</td>
+                <td>{{ getAppsCountForProfile(profile.id) }}</td>
+                <td><span class="status">{{ getProfileStatusLabel(profile.status) }}</span></td>
+                <td class="actions-cell profile-actions-cell">
+                  <div class="action-buttons profile-action-buttons">
+
+                    <button
+                      type="button"
+                      class="view-btn icon-only-btn"
+                      [title]="t('viewApps')"
+                      (click)="openProfileAppsModal(profile)"
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="18"
+                        height="18"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2.3"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                      >
+                        <path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"></path>
+                        <circle cx="12" cy="12" r="3"></circle>
+                      </svg>
+                    </button>
+
+                    <button
+                      type="button"
+                      class="edit-btn"
+                      (click)="editProfile(profile)"
+                    >
+                      {{ t('edit') }}
+                    </button>
+
+                    <button
+                      type="button"
+                      class="delete-btn"
+                      (click)="deleteProfile(profile.id)"
+                    >
+                      {{ t('delete') }}
+                    </button>
+
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="show-more-box" *ngIf="filteredProfiles.length > listLimit">
+          <button type="button" class="show-more-btn" (click)="showAllProfiles = !showAllProfiles">
+            {{ showAllProfiles ? t('showLess') : t('showMore') }}
+          </button>
+        </div>
+
+        <p class="empty" *ngIf="filteredProfiles.length === 0">{{ t('noProfile') }}</p>
+      </section>
+
+
+      <div class="modal-overlay" *ngIf="selectedProfileForAppsView" (click)="closeProfileAppsModal()">
+
+        <div class="modal-card" (click)="$event.stopPropagation()">
+
+          <div class="modal-header">
+            <div>
+              <h3>{{ t('modalAppsTitle') }}</h3>
+              <p>{{ t('profile') }} : <strong>{{ selectedProfileForAppsView.name }}</strong></p>
+            </div>
+
+            <button type="button" class="modal-close-btn" (click)="closeProfileAppsModal()">×</button>
+          </div>
+
+          <div class="modal-body">
+
+            <div *ngIf="selectedProfileApps.length > 0; else noProfileApps">
+              <div class="profile-app-modal-item" *ngFor="let app of selectedProfileApps; let i = index">
+
+                <div class="profile-app-modal-left">
+                  <span class="profile-app-index">{{ i + 1 }}</span>
+
+                  <div>
+                    <strong>{{ app.appName }}</strong>
+                    <small>{{ app.packageName }}</small>
+                  </div>
+                </div>
+
+                <a *ngIf="app.apkUrl" [href]="app.apkUrl" target="_blank" class="apk-link-btn">
+                  {{ t('apk') }}
+                </a>
+
+              </div>
+            </div>
+
+            <ng-template #noProfileApps>
+              <p class="empty">{{ t('noProfileApps') }}</p>
+            </ng-template>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+
+    <!-- APPLICATIONS -->
+    <div *ngIf="activeSection === 'apps'">
+
+      <section id="app-form" class="content-card form-anchor">
+        <h2>{{ editingAppId ? t('appTitleEdit') : t('appTitleAdd') }}</h2>
+
+        <div class="form-grid">
+          <input type="text" [placeholder]="t('appName')" [(ngModel)]="newApp.name">
+          <input type="text" [placeholder]="t('packageName')" [(ngModel)]="newApp.packageName">
+          <input type="text" [placeholder]="t('version')" [(ngModel)]="newApp.version">
+
+          <input type="text" [placeholder]="t('apkLink')" [(ngModel)]="newApp.apkUrl">
+
+          <select [(ngModel)]="newApp.type">
+            <option value="REQUIRED">{{ t('required') }}</option>
+            <option value="OPTIONAL">{{ t('optional') }}</option>
+            <option value="BLOCKED">{{ t('blocked') }}</option>
+          </select>
+
+          <select [(ngModel)]="newApp.status">
+            <option value="ACTIVE">{{ t('appActive') }}</option>
+            <option value="INACTIVE">{{ t('appInactive') }}</option>
+          </select>
+
+          <button type="button" (click)="saveApp()">
+            {{ editingAppId ? t('updateAppBtn') : t('addAppBtn') }}
+          </button>
+
+          <button type="button" *ngIf="editingAppId" class="cancel-btn" (click)="cancelEditApp()">
+            {{ t('cancel') }}
+          </button>
+        </div>
+      </section>
+
+      <section class="content-card">
+        <div class="section-header">
+          <h2>{{ t('appList') }}</h2>
+          <button type="button" class="refresh-btn" (click)="loadApps()">{{ t('refresh') }}</button>
+        </div>
+
+        <input class="search-input" type="text" [placeholder]="t('searchApp')" [(ngModel)]="appSearch">
+
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>{{ t('number') }}</th>
+                <th>{{ t('appName') }}</th>
+                <th>{{ t('packageName') }}</th>
+                <th>{{ t('version') }}</th>
+                <th>{{ t('apk') }}</th>
+                <th>{{ t('type') }}</th>
+                <th>{{ t('status') }}</th>
+                <th class="actions-cell">{{ t('actions') }}</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              <tr *ngFor="let app of visibleApps; let i = index">
+                <td>{{ i + 1 }}</td>
+                <td>{{ app.name }}</td>
+                <td>{{ app.packageName }}</td>
+                <td>{{ app.version }}</td>
+                <td>
+                  <span *ngIf="!app.apkUrl">{{ t('undefined') }}</span>
+                  <a *ngIf="app.apkUrl" [href]="app.apkUrl" target="_blank">
+                    {{ t('seeApk') }}
+                  </a>
+                </td>
+                <td>{{ getAppTypeLabel(app.type) }}</td>
+                <td><span class="status">{{ getAppStatusLabel(app.status) }}</span></td>
+                <td class="actions-cell">
+                  <div class="action-buttons">
+                    <button type="button" class="edit-btn" (click)="editApp(app)">{{ t('edit') }}</button>
+                    <button type="button" class="delete-btn" (click)="deleteApp(app.id)">{{ t('delete') }}</button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="show-more-box" *ngIf="filteredApps.length > listLimit">
+          <button type="button" class="show-more-btn" (click)="showAllApps = !showAllApps">
+            {{ showAllApps ? t('showLess') : t('showMore') }}
+          </button>
+        </div>
+
+        <p class="empty" *ngIf="filteredApps.length === 0">{{ t('noApp') }}</p>
+      </section>
+
+    </div>
+
+
+    <!-- PROBLÈMES -->
+    <div *ngIf="activeSection === 'alerts'">
+
+      <section class="content-card">
+        <div class="section-header">
+          <h2>{{ t('problemsTitle') }}</h2>
+          <button type="button" class="refresh-btn" (click)="loadAlerts()">{{ t('refresh') }}</button>
+        </div>
+
+        <p class="subtitle">{{ t('problemsSubtitle') }}</p>
+
+        <input class="search-input" type="text" [placeholder]="t('searchAlert')" [(ngModel)]="alertSearch">
+
+        <div class="alert-cards">
+
+          <div class="problem-card" *ngFor="let alert of visibleAlerts">
+
+            <div class="problem-header">
+              <div>
+                <h3>{{ getAlertTypeLabel(alert.type) }}</h3>
+                <p>
+                  {{ t('device') }} :
+                  <strong>{{ alert.device?.deviceIdentifier }}</strong>
+                  —
+                  {{ alert.device?.brand }} {{ alert.device?.model }}
+                </p>
+                <p>
+                  {{ t('profile') }} :
+                  <strong>{{ getProfileNameForDevice(alert.device?.id) }}</strong>
+                </p>
+              </div>
+
+              <div class="problem-badges">
+                <span
+                  class="severity-status"
+                  [class.low]="alert.severity === 'LOW'"
+                  [class.medium]="alert.severity === 'MEDIUM'"
+                  [class.high]="alert.severity === 'HIGH'"
+                  [class.critical]="alert.severity === 'CRITICAL'"
+                >
+                  {{ getSeverityLabel(alert.severity) }}
+                </span>
+
+                <span
+                  class="alert-status"
+                  [class.new]="alert.status === 'NEW'"
+                  [class.progress]="alert.status === 'IN_PROGRESS'"
+                  [class.resolved]="alert.status === 'RESOLVED'"
+                >
+                  {{ getAlertStatusLabel(alert.status) }}
+                </span>
+              </div>
+            </div>
+
+            <div class="problem-body">
+              <div class="problem-message">
+                <h4>{{ t('problemFromUser') }}</h4>
+                <p>{{ alert.message }}</p>
+                <small>{{ t('sentAt') }} : {{ alert.createdAt | date:'short' }}</small>
+              </div>
+
+              <div class="admin-response">
+                <h4>{{ t('adminResponse') }}</h4>
+
+                <textarea
+                  rows="4"
+                  [placeholder]="t('responsePlaceholder')"
+                  [(ngModel)]="alert.adminResponse"
+                ></textarea>
+
+                <div class="status-row">
+                  <label>{{ t('problemStatus') }}</label>
+
+                  <select [(ngModel)]="alert.status" (change)="updateAlertStatus(alert)">
+                    <option value="NEW">{{ t('new') }}</option>
+                    <option value="IN_PROGRESS">{{ t('inProgress') }}</option>
+                    <option value="RESOLVED">{{ t('resolved') }}</option>
+                  </select>
+                </div>
+
+                <p class="response-preview" *ngIf="alert.adminResponse">
+                  {{ t('currentResponse') }} : {{ alert.adminResponse }}
+                </p>
+
+                <p class="resolved-date" *ngIf="alert.resolvedAt">
+                  {{ t('resolvedAt') }} : {{ alert.resolvedAt | date:'short' }}
+                </p>
+              </div>
+            </div>
+
+            <div class="problem-actions">
+              <button type="button" (click)="saveAlertResponse(alert)">
+                {{ t('sendResponse') }}
+              </button>
+
+              <button type="button" class="resolved-btn" (click)="markAlertResolved(alert)">
+                {{ t('markResolved') }}
+              </button>
+
+              <button type="button" class="delete-btn" (click)="deleteAlert(alert.id)">
+                {{ t('delete') }}
+              </button>
+            </div>
+
+          </div>
+
+        </div>
+
+        <div class="show-more-box" *ngIf="filteredAlerts.length > listLimit">
+          <button type="button" class="show-more-btn" (click)="showAllAlerts = !showAllAlerts">
+            {{ showAllAlerts ? t('showLess') : t('showMore') }}
+          </button>
+        </div>
+
+        <p class="empty" *ngIf="filteredAlerts.length === 0">
+          {{ t('noAlert') }}
+        </p>
+      </section>
+
+    </div>
+
+  </main>
+
+</div>
