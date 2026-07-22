@@ -11,4 +11,6 @@ public interface DeviceProfileRepository extends JpaRepository<DeviceProfile, Lo
     Optional<DeviceProfile> findByDevice_Id(Long deviceId);
 
     List<DeviceProfile> findByProfile_Id(Long profileId);
+
+    Optional<DeviceProfile> findFirstByDevice_IdAndActiveTrueOrderByAssignedAtDesc(Long deviceId);
 }

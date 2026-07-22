@@ -2382,3 +2382,10 @@ td small {
   font-size: 12px !important;
   color: #64748b !important;
 }
+
+/* =====================================================
+   SUPPORT COLONNE IMEI
+===================================================== */
+
+/* La colonne IMEI est affichée dans les tableaux appareils.
+   Les styles existants de table-wrapper gardent le tableau responsive. */

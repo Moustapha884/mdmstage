@@ -69,6 +69,7 @@ export class App implements OnInit, OnDestroy {
 
   newDevice = {
     deviceIdentifier: '',
+    imei: '',
     brand: '',
     model: '',
     os: '',
@@ -151,6 +152,8 @@ export class App implements OnInit, OnDestroy {
       editDeviceTitle: 'Modifier un appareil',
       deviceSubtitle: 'Lors de l’ajout d’un appareil anonyme, l’administrateur choisit directement le profil MDM associé.',
       deviceIdentifierPlaceholder: 'Identifiant appareil',
+      imeiPlaceholder: 'IMEI du téléphone',
+      imei: 'IMEI',
       brandPlaceholder: 'Marque',
       modelPlaceholder: 'Modèle',
       osPlaceholder: 'Système d’exploitation',
@@ -285,6 +288,8 @@ export class App implements OnInit, OnDestroy {
       editDeviceTitle: 'تعديل جهاز',
       deviceSubtitle: 'عند إضافة جهاز مجهول، يختار المدير مباشرة ملف MDM المرتبط به.',
       deviceIdentifierPlaceholder: 'معرّف الجهاز',
+      imeiPlaceholder: 'IMEI الهاتف',
+      imei: 'IMEI',
       brandPlaceholder: 'الشركة',
       modelPlaceholder: 'النموذج',
       osPlaceholder: 'نظام التشغيل',
@@ -680,6 +685,7 @@ export class App implements OnInit, OnDestroy {
     return this.devices.filter(device =>
       String(device.id).includes(search) ||
       String(device.deviceIdentifier || '').toLowerCase().includes(search) ||
+      String(device.imei || '').toLowerCase().includes(search) ||
       String(device.brand || '').toLowerCase().includes(search) ||
       String(device.model || '').toLowerCase().includes(search) ||
       String(device.os || '').toLowerCase().includes(search) ||
@@ -750,6 +756,7 @@ export class App implements OnInit, OnDestroy {
       String(alert.message || '').toLowerCase().includes(search) ||
       String(alert.adminResponse || '').toLowerCase().includes(search) ||
       String(alert.device?.deviceIdentifier || '').toLowerCase().includes(search) ||
+      String(alert.device?.imei || '').toLowerCase().includes(search) ||
       String(alert.device?.brand || '').toLowerCase().includes(search) ||
       String(this.getProfileNameForDevice(alert.device?.id)).toLowerCase().includes(search)
     );
@@ -921,6 +928,7 @@ export class App implements OnInit, OnDestroy {
   saveDevice() {
     if (
       this.isEmpty(this.newDevice.deviceIdentifier) ||
+      this.isEmpty(this.newDevice.imei) ||
       this.isEmpty(this.newDevice.brand) ||
       this.isEmpty(this.newDevice.model) ||
       this.isEmpty(this.newDevice.os) ||
@@ -1009,11 +1017,12 @@ export class App implements OnInit, OnDestroy {
     this.editingDeviceId = device.id;
 
     this.newDevice = {
-      deviceIdentifier: device.deviceIdentifier,
-      brand: device.brand,
-      model: device.model,
-      os: device.os,
-      status: device.status
+      deviceIdentifier: device.deviceIdentifier || '',
+      imei: device.imei || '',
+      brand: device.brand || '',
+      model: device.model || '',
+      os: device.os || '',
+      status: device.status || 'ACTIVE'
     };
 
     const existingProfile = this.deviceProfiles.find(dp =>
@@ -1037,6 +1046,7 @@ export class App implements OnInit, OnDestroy {
 
     this.newDevice = {
       deviceIdentifier: '',
+      imei: '',
       brand: '',
       model: '',
       os: '',

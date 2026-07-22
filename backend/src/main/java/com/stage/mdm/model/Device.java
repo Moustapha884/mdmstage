@@ -11,6 +11,10 @@ public class Device {
     private Long id;
 
     private String deviceIdentifier;
+
+    @Column(unique = true)
+    private String imei;
+
     private String brand;
     private String model;
     private String os;
@@ -32,6 +36,14 @@ public class Device {
 
     public void setDeviceIdentifier(String deviceIdentifier) {
         this.deviceIdentifier = deviceIdentifier;
+    }
+
+    public String getImei() {
+        return imei;
+    }
+
+    public void setImei(String imei) {
+        this.imei = imei;
     }
 
     public String getBrand() {

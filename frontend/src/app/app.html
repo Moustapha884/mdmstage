@@ -174,6 +174,7 @@
               <tr>
                 <th>{{ t('number') }}</th>
                 <th>{{ t('identifier') }}</th>
+                <th>{{ t('imei') }}</th>
                 <th>{{ t('profile') }}</th>
                 <th>{{ t('status') }}</th>
               </tr>
@@ -183,6 +184,7 @@
               <tr *ngFor="let device of devices.slice().reverse().slice(0, 5); let i = index">
                 <td>{{ i + 1 }}</td>
                 <td>{{ device.deviceIdentifier }}</td>
+                <td>{{ device.imei || t('undefined') }}</td>
                 <td>{{ getProfileNameForDevice(device.id) }}</td>
                 <td>
                   <span class="status">{{ getDeviceStatusLabel(device.status) }}</span>
@@ -258,6 +260,7 @@
 
         <div class="form-grid">
           <input type="text" [placeholder]="t('deviceIdentifierPlaceholder')" [(ngModel)]="newDevice.deviceIdentifier">
+          <input type="text" [placeholder]="t('imeiPlaceholder')" [(ngModel)]="newDevice.imei">
           <input type="text" [placeholder]="t('brandPlaceholder')" [(ngModel)]="newDevice.brand">
           <input type="text" [placeholder]="t('modelPlaceholder')" [(ngModel)]="newDevice.model">
           <input type="text" [placeholder]="t('osPlaceholder')" [(ngModel)]="newDevice.os">
@@ -299,6 +302,7 @@
               <tr>
                 <th>{{ t('number') }}</th>
                 <th>{{ t('identifier') }}</th>
+                <th>{{ t('imei') }}</th>
                 <th>{{ t('brand') }}</th>
                 <th>{{ t('model') }}</th>
                 <th>{{ t('os') }}</th>
@@ -312,6 +316,7 @@
               <tr *ngFor="let device of visibleDevices; let i = index">
                 <td>{{ i + 1 }}</td>
                 <td>{{ device.deviceIdentifier }}</td>
+                <td>{{ device.imei || t('undefined') }}</td>
                 <td>{{ device.brand }}</td>
                 <td>{{ device.model }}</td>
                 <td>{{ device.os }}</td>
