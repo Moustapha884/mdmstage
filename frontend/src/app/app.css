@@ -2389,3 +2389,469 @@ td small {
 
 /* La colonne IMEI est affichée dans les tableaux appareils.
    Les styles existants de table-wrapper gardent le tableau responsive. */
+/* =====================================================
+   PALETTE ENTREPRISE - COULEURS DU LOGO
+   Bleu foncé / bleu pétrole / bleu clair
+===================================================== */
+
+:host {
+  --company-dark: #174E6D;
+  --company-primary: #3B81AA;
+  --company-secondary: #609EC4;
+  --company-light: #E8F6FA;
+  --company-bg: #F4F8FB;
+  --company-white: #FFFFFF;
+}
+
+/* Fond général */
+:host,
+.dashboard-page,
+.main-content {
+  background: var(--company-bg) !important;
+}
+
+/* Sidebar */
+.sidebar {
+  background: var(--company-dark) !important;
+}
+
+.sidebar a:hover,
+.sidebar a.active {
+  background: var(--company-primary) !important;
+  color: #ffffff !important;
+}
+
+/* Boutons principaux */
+button {
+  background: var(--company-primary) !important;
+  color: #ffffff !important;
+}
+
+button:hover {
+  background: var(--company-dark) !important;
+}
+
+/* Bouton déconnexion et suppression : rouge seulement */
+.logout-btn,
+.delete-btn,
+.action-buttons .delete-btn,
+.profile-action-buttons .delete-btn,
+.modal-close-btn {
+  background: #dc2626 !important;
+  color: #ffffff !important;
+}
+
+.logout-btn:hover,
+.delete-btn:hover,
+.action-buttons .delete-btn:hover,
+.profile-action-buttons .delete-btn:hover,
+.modal-close-btn:hover {
+  background: #991b1b !important;
+}
+
+/* Bouton Modifier : plus d'orange, bleu logo */
+.edit-btn,
+.action-buttons .edit-btn,
+.profile-action-buttons .edit-btn {
+  background: var(--company-secondary) !important;
+  color: #ffffff !important;
+}
+
+.edit-btn:hover,
+.action-buttons .edit-btn:hover,
+.profile-action-buttons .edit-btn:hover {
+  background: var(--company-dark) !important;
+}
+
+/* Bouton voir */
+.view-btn,
+.icon-only-btn {
+  background: var(--company-primary) !important;
+  color: #ffffff !important;
+}
+
+.view-btn:hover,
+.icon-only-btn:hover {
+  background: var(--company-dark) !important;
+}
+
+/* Topbar et cartes */
+.topbar,
+.content-card,
+.dashboard-card,
+.stat-card,
+.problem-card {
+  background: #ffffff !important;
+  border-color: #dbeaf2 !important;
+}
+
+/* Hero dashboard */
+.dashboard-hero {
+  background: linear-gradient(135deg, var(--company-dark), var(--company-primary), var(--company-secondary)) !important;
+  color: #ffffff !important;
+}
+
+/* Statistiques */
+.stat-card h3 {
+  color: var(--company-primary) !important;
+}
+
+/* Actions rapides */
+.quick-actions button {
+  background: #ffffff !important;
+  color: var(--company-dark) !important;
+  border: 1px solid #dbeaf2 !important;
+}
+
+.quick-actions button:hover {
+  background: var(--company-primary) !important;
+  color: #ffffff !important;
+}
+
+/* Refresh */
+.refresh-btn {
+  background: var(--company-dark) !important;
+}
+
+.refresh-btn:hover {
+  background: var(--company-primary) !important;
+}
+
+/* Inputs focus */
+input:focus,
+select:focus,
+textarea:focus {
+  border-color: var(--company-primary) !important;
+  box-shadow: 0 0 0 4px rgba(59, 129, 170, 0.16) !important;
+}
+
+/* Recherche */
+.search-input {
+  background: #ffffff !important;
+  border-color: #c8dce8 !important;
+}
+
+/* Tables */
+th {
+  background: var(--company-light) !important;
+  color: var(--company-dark) !important;
+}
+
+tr:hover td {
+  background: #f0f8fc !important;
+}
+
+/* Badges status en bleu clair */
+.status {
+  background: var(--company-light) !important;
+  color: var(--company-dark) !important;
+  border-color: #b6d6e8 !important;
+}
+
+/* Bouton Télécharger APK */
+.apk-link-btn {
+  background: transparent !important;
+  color: var(--company-primary) !important;
+  border: 1px solid var(--company-primary) !important;
+}
+
+.apk-link-btn:hover {
+  background: var(--company-light) !important;
+  color: var(--company-dark) !important;
+}
+
+/* Upload APK */
+.apk-upload-box {
+  background: #f7fbfd !important;
+  border-color: var(--company-secondary) !important;
+}
+
+.apk-upload-box label {
+  color: var(--company-dark) !important;
+}
+
+/* Bouton afficher plus */
+.show-more-btn {
+  background: var(--company-dark) !important;
+}
+
+.show-more-btn:hover {
+  background: var(--company-primary) !important;
+}
+
+/* Boutons topbar */
+.icon-topbar-btn {
+  color: var(--company-dark) !important;
+  border-color: #b6d6e8 !important;
+}
+
+.icon-topbar-btn:hover {
+  background: var(--company-light) !important;
+  color: var(--company-dark) !important;
+}
+
+/* Admin badge */
+.admin-badge {
+  background: var(--company-light) !important;
+  color: var(--company-dark) !important;
+  border-color: #b6d6e8 !important;
+}
+
+/* Login page avec couleurs logo */
+.login-page {
+  background:
+    radial-gradient(circle at 20% 20%, rgba(96, 158, 196, 0.45), transparent 30%),
+    radial-gradient(circle at 80% 80%, rgba(59, 129, 170, 0.35), transparent 30%),
+    linear-gradient(135deg, #0b2f42, var(--company-dark), var(--company-primary)) !important;
+}
+
+.login-right button {
+  background: var(--company-primary) !important;
+}
+
+.login-right button:hover {
+  background: var(--company-dark) !important;
+}
+
+/* Mode sombre compatible avec le logo */
+:host-context(.dark-mode),
+:host-context(.dark-mode) .dashboard-page,
+:host-context(.dark-mode) .main-content {
+  background: #0b2533 !important;
+}
+
+:host-context(.dark-mode) .sidebar {
+  background: #092433 !important;
+}
+
+:host-context(.dark-mode) .dashboard-hero {
+  background: linear-gradient(135deg, #092433, #174E6D, #3B81AA) !important;
+}
+
+:host-context(.dark-mode) .topbar,
+:host-context(.dark-mode) .content-card,
+:host-context(.dark-mode) .dashboard-card,
+:host-context(.dark-mode) .stat-card,
+:host-context(.dark-mode) .problem-card,
+:host-context(.dark-mode) .modal-card {
+  background: #12384a !important;
+  border-color: #24556b !important;
+}
+
+:host-context(.dark-mode) table th {
+  background: #174E6D !important;
+  color: #ffffff !important;
+}
+
+:host-context(.dark-mode) table td {
+  background: #12384a !important;
+  color: #e5f6fb !important;
+  border-color: #24556b !important;
+}
+
+:host-context(.dark-mode) tr:hover td {
+  background: #174E6D !important;
+}
+
+:host-context(.dark-mode) input,
+:host-context(.dark-mode) select,
+:host-context(.dark-mode) textarea {
+  background: #0b2533 !important;
+  color: #e5f6fb !important;
+  border-color: #35708d !important;
+}
+/* =====================================================
+   VERSION PLUS CLAIRE - COULEURS LOGO ENTREPRISE
+===================================================== */
+
+:host {
+  --company-dark: #174E6D;
+  --company-primary: #3B81AA;
+  --company-secondary: #609EC4;
+  --company-light: #EAF7FC;
+  --company-bg: #F7FBFD;
+}
+
+/* Fond général plus clair */
+:host,
+.dashboard-page,
+.main-content {
+  background: #F7FBFD !important;
+}
+
+/* Sidebar moins foncée */
+.sidebar {
+  background: linear-gradient(180deg, #2F789E, #3B81AA) !important;
+}
+
+/* Liens sidebar */
+.sidebar a {
+  color: #EAF7FC !important;
+}
+
+.sidebar a:hover,
+.sidebar a.active {
+  background: rgba(255, 255, 255, 0.22) !important;
+  color: #ffffff !important;
+}
+
+/* Hero dashboard plus doux */
+.dashboard-hero {
+  background: linear-gradient(135deg, #3B81AA, #609EC4, #8BC5DF) !important;
+  color: #ffffff !important;
+}
+
+/* Cartes */
+.topbar,
+.content-card,
+.dashboard-card,
+.stat-card,
+.problem-card {
+  background: #ffffff !important;
+  border-color: #D8ECF5 !important;
+}
+
+/* Titres */
+.topbar h1,
+.content-card h2,
+.dashboard-card h2,
+.problem-header h3,
+.apps-selector h3 {
+  color: #174E6D !important;
+}
+
+/* Statistiques */
+.stat-card h3 {
+  color: #3B81AA !important;
+}
+
+.stat-card p,
+.topbar p,
+.subtitle {
+  color: #5F7F91 !important;
+}
+
+/* Boutons principaux plus doux */
+button {
+  background: #3B81AA !important;
+  color: #ffffff !important;
+}
+
+button:hover {
+  background: #2F789E !important;
+}
+
+/* Bouton Modifier : bleu clair */
+.edit-btn,
+.action-buttons .edit-btn,
+.profile-action-buttons .edit-btn {
+  background: #609EC4 !important;
+  color: #ffffff !important;
+}
+
+.edit-btn:hover,
+.action-buttons .edit-btn:hover,
+.profile-action-buttons .edit-btn:hover {
+  background: #3B81AA !important;
+}
+
+/* Bouton voir */
+.view-btn,
+.icon-only-btn {
+  background: #3B81AA !important;
+}
+
+.view-btn:hover,
+.icon-only-btn:hover {
+  background: #2F789E !important;
+}
+
+/* Refresh et afficher plus */
+.refresh-btn,
+.show-more-btn {
+  background: #3B81AA !important;
+}
+
+.refresh-btn:hover,
+.show-more-btn:hover {
+  background: #2F789E !important;
+}
+
+/* Actions rapides */
+.quick-actions button {
+  background: #ffffff !important;
+  color: #174E6D !important;
+  border: 1px solid #D8ECF5 !important;
+}
+
+.quick-actions button:hover {
+  background: #3B81AA !important;
+  color: #ffffff !important;
+}
+
+/* Table */
+th {
+  background: #EAF7FC !important;
+  color: #174E6D !important;
+}
+
+td {
+  color: #334155 !important;
+}
+
+tr:hover td {
+  background: #F0FAFD !important;
+}
+
+/* Badges */
+.status {
+  background: #EAF7FC !important;
+  color: #174E6D !important;
+  border-color: #B7DCEB !important;
+}
+
+/* APK */
+.apk-link-btn {
+  color: #3B81AA !important;
+  border-color: #3B81AA !important;
+}
+
+.apk-link-btn:hover {
+  background: #EAF7FC !important;
+  color: #174E6D !important;
+}
+
+/* Upload APK */
+.apk-upload-box {
+  background: #F7FBFD !important;
+  border-color: #8BC5DF !important;
+}
+
+.apk-upload-box label {
+  color: #174E6D !important;
+}
+
+/* Boutons topbar */
+.icon-topbar-btn {
+  color: #174E6D !important;
+  border-color: #B7DCEB !important;
+}
+
+.icon-topbar-btn:hover {
+  background: #EAF7FC !important;
+}
+
+/* Badge admin */
+.admin-badge {
+  background: #EAF7FC !important;
+  color: #174E6D !important;
+  border-color: #B7DCEB !important;
+}
+
+/* Login plus clair */
+.login-page {
+  background:
+    radial-gradient(circle at 20% 20%, rgba(96, 158, 196, 0.35), transparent 30%),
+    radial-gradient(circle at 80% 80%, rgba(139, 197, 223, 0.35), transparent 30%),
+    linear-gradient(135deg, #2F789E, #3B81AA, #609EC4) !important;
+}

@@ -23,6 +23,8 @@ export class App implements OnInit, OnDestroy {
   alertMessage = '';
   alertType = 'success';
 
+  adminToken = '';
+
   autoLogoutEnabled = true;
 
   currentTheme: 'light' | 'dark' = 'light';
@@ -30,6 +32,7 @@ export class App implements OnInit, OnDestroy {
 
   private autoLogoutKey = 'mdm_auto_logout_enabled';
   private loggedInKey = 'mdm_admin_logged_in';
+  private tokenKey = 'mdm_admin_token';
   private themeKey = 'mdm_theme';
   private languageKey = 'mdm_language';
 
@@ -446,6 +449,7 @@ export class App implements OnInit, OnDestroy {
   restoreSession() {
     const autoLogoutValue = localStorage.getItem(this.autoLogoutKey);
     const loggedInValue = localStorage.getItem(this.loggedInKey);
+    const savedToken = localStorage.getItem(this.tokenKey);
 
     if (autoLogoutValue === null) {
       this.autoLogoutEnabled = true;
@@ -456,15 +460,23 @@ export class App implements OnInit, OnDestroy {
 
     if (this.autoLogoutEnabled) {
       localStorage.removeItem(this.loggedInKey);
+      localStorage.removeItem(this.tokenKey);
+      this.adminToken = '';
       return;
     }
 
-    if (!this.autoLogoutEnabled && loggedInValue === 'true') {
+    if (!this.autoLogoutEnabled && loggedInValue === 'true' && savedToken) {
+      this.adminToken = savedToken;
       this.isLoggedIn = true;
       this.message = this.currentLanguage === 'ar' ? 'تمت استعادة الجلسة' : 'Connexion restaurée';
       this.activeSection = 'dashboard';
       this.loadAllData();
+      return;
     }
+
+    localStorage.removeItem(this.loggedInKey);
+    localStorage.removeItem(this.tokenKey);
+    this.adminToken = '';
   }
 
   toggleAutoLogout() {
@@ -473,10 +485,15 @@ export class App implements OnInit, OnDestroy {
 
     if (this.autoLogoutEnabled) {
       localStorage.removeItem(this.loggedInKey);
+      localStorage.removeItem(this.tokenKey);
       this.showSuccess(this.currentLanguage === 'ar' ? 'تم تفعيل تسجيل الخروج التلقائي' : 'Déconnexion automatique activée');
     } else {
       if (this.isLoggedIn) {
         localStorage.setItem(this.loggedInKey, 'true');
+
+        if (this.adminToken) {
+          localStorage.setItem(this.tokenKey, this.adminToken);
+        }
       }
 
       this.showSuccess(this.currentLanguage === 'ar' ? 'تم تعطيل تسجيل الخروج التلقائي' : 'Déconnexion automatique désactivée');
@@ -488,8 +505,13 @@ export class App implements OnInit, OnDestroy {
 
     if (this.autoLogoutEnabled) {
       localStorage.removeItem(this.loggedInKey);
+      localStorage.removeItem(this.tokenKey);
     } else {
       localStorage.setItem(this.loggedInKey, 'true');
+
+      if (this.adminToken) {
+        localStorage.setItem(this.tokenKey, this.adminToken);
+      }
     }
   }
 
@@ -559,6 +581,31 @@ export class App implements OnInit, OnDestroy {
     return value === null || value === undefined || String(value).trim() === '';
   }
 
+  getAuthOptions() {
+    const token = this.adminToken || localStorage.getItem(this.tokenKey) || '';
+
+    return {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    };
+  }
+
+  saveAdminToken(token: string) {
+    this.adminToken = token;
+
+    if (this.autoLogoutEnabled) {
+      localStorage.removeItem(this.tokenKey);
+    } else {
+      localStorage.setItem(this.tokenKey, token);
+    }
+  }
+
+  clearAdminToken() {
+    this.adminToken = '';
+    localStorage.removeItem(this.tokenKey);
+  }
+
   login() {
     if (this.isEmpty(this.username) || this.isEmpty(this.password)) {
       this.message = this.currentLanguage === 'ar'
@@ -575,6 +622,17 @@ export class App implements OnInit, OnDestroy {
     this.http.post<any>(`${this.apiUrl}/auth/login`, data)
       .subscribe({
         next: (response) => {
+          const token = response?.token || '';
+
+          if (this.isEmpty(token)) {
+            this.showError(this.currentLanguage === 'ar'
+              ? 'تم تسجيل الدخول لكن لم يتم استلام رمز الحماية'
+              : 'Connexion reçue, mais aucun token de sécurité n’a été retourné');
+            return;
+          }
+
+          this.saveAdminToken(token);
+
           this.isLoggedIn = true;
           this.message = response.message;
           this.activeSection = 'dashboard';
@@ -594,6 +652,7 @@ export class App implements OnInit, OnDestroy {
 
   logout() {
     localStorage.removeItem(this.loggedInKey);
+    this.clearAdminToken();
 
     this.isLoggedIn = false;
     this.username = '';
@@ -912,7 +971,7 @@ export class App implements OnInit, OnDestroy {
   }
 
   loadDevices() {
-    this.http.get<any[]>(`${this.apiUrl}/devices`)
+    this.http.get<any[]>(`${this.apiUrl}/devices`, this.getAuthOptions())
       .subscribe({
         next: (data) => {
           this.devices = data;
@@ -942,7 +1001,7 @@ export class App implements OnInit, OnDestroy {
     }
 
     if (this.editingDeviceId) {
-      this.http.put<any>(`${this.apiUrl}/devices/${this.editingDeviceId}`, this.newDevice)
+      this.http.put<any>(`${this.apiUrl}/devices/${this.editingDeviceId}`, this.newDevice, this.getAuthOptions())
         .subscribe({
           next: (updatedDevice) => {
             const deviceId = updatedDevice?.id || this.editingDeviceId;
@@ -968,7 +1027,7 @@ export class App implements OnInit, OnDestroy {
           }
         });
     } else {
-      this.http.post<any>(`${this.apiUrl}/devices`, this.newDevice)
+      this.http.post<any>(`${this.apiUrl}/devices`, this.newDevice, this.getAuthOptions())
         .subscribe({
           next: (createdDevice) => {
             this.devices = [...this.devices, createdDevice];
@@ -996,7 +1055,8 @@ export class App implements OnInit, OnDestroy {
   assignProfileToDevice(deviceId: number, profileId: string) {
     this.http.post<any>(
       `${this.apiUrl}/device-profiles?deviceId=${deviceId}&profileId=${profileId}&active=true`,
-      {}
+      {},
+      this.getAuthOptions()
     ).subscribe({
       next: (savedDeviceProfile) => {
         this.deviceProfiles = this.deviceProfiles.filter(dp =>
@@ -1083,7 +1143,7 @@ export class App implements OnInit, OnDestroy {
       this.resetDeviceForm();
     }
 
-    this.http.delete(`${this.apiUrl}/devices/${id}`)
+    this.http.delete(`${this.apiUrl}/devices/${id}`, this.getAuthOptions())
       .subscribe({
         next: () => {
           this.showSuccess(this.currentLanguage === 'ar'
@@ -1103,7 +1163,7 @@ export class App implements OnInit, OnDestroy {
   }
 
   loadProfiles() {
-    this.http.get<any[]>(`${this.apiUrl}/profiles`)
+    this.http.get<any[]>(`${this.apiUrl}/profiles`, this.getAuthOptions())
       .subscribe({
         next: (data) => {
           this.profiles = data;
@@ -1136,7 +1196,7 @@ export class App implements OnInit, OnDestroy {
     }
 
     if (this.editingProfileId) {
-      this.http.put<any>(`${this.apiUrl}/profiles/${this.editingProfileId}`, this.newProfile)
+      this.http.put<any>(`${this.apiUrl}/profiles/${this.editingProfileId}`, this.newProfile, this.getAuthOptions())
         .subscribe({
           next: (updatedProfile) => {
             const profileId = updatedProfile?.id || this.editingProfileId;
@@ -1162,7 +1222,7 @@ export class App implements OnInit, OnDestroy {
           }
         });
     } else {
-      this.http.post<any>(`${this.apiUrl}/profiles`, this.newProfile)
+      this.http.post<any>(`${this.apiUrl}/profiles`, this.newProfile, this.getAuthOptions())
         .subscribe({
           next: (createdProfile) => {
             this.profiles = [...this.profiles, createdProfile];
@@ -1190,7 +1250,8 @@ export class App implements OnInit, OnDestroy {
 
     this.http.post<any[]>(
       `${this.apiUrl}/profile-apps/profile/${profileId}/apps`,
-      body
+      body,
+      this.getAuthOptions()
     ).subscribe({
       next: (savedProfileApps) => {
         this.profileApps = this.profileApps.filter(pa =>
@@ -1223,7 +1284,7 @@ export class App implements OnInit, OnDestroy {
       status: profile.status
     };
 
-    this.http.get<any[]>(`${this.apiUrl}/profile-apps/profile/${profile.id}`)
+    this.http.get<any[]>(`${this.apiUrl}/profile-apps/profile/${profile.id}`, this.getAuthOptions())
       .subscribe({
         next: (data) => {
           this.selectedAppIdsForProfile = data.map(item => String(item.app?.id));
@@ -1284,7 +1345,7 @@ export class App implements OnInit, OnDestroy {
       this.closeProfileAppsModal();
     }
 
-    this.http.delete(`${this.apiUrl}/profiles/${id}`)
+    this.http.delete(`${this.apiUrl}/profiles/${id}`, this.getAuthOptions())
       .subscribe({
         next: () => {
           this.showSuccess(this.currentLanguage === 'ar'
@@ -1304,7 +1365,7 @@ export class App implements OnInit, OnDestroy {
   }
 
   loadApps() {
-    this.http.get<any[]>(`${this.apiUrl}/apps`)
+    this.http.get<any[]>(`${this.apiUrl}/apps`, this.getAuthOptions())
       .subscribe({
         next: (data) => {
           this.apps = data;
@@ -1382,7 +1443,7 @@ export class App implements OnInit, OnDestroy {
     }
 
     if (this.editingAppId) {
-      this.http.put<any>(`${this.apiUrl}/apps/${this.editingAppId}`, formData)
+      this.http.put<any>(`${this.apiUrl}/apps/${this.editingAppId}`, formData, this.getAuthOptions())
         .subscribe({
           next: (updatedApp) => {
             this.apps = this.apps.map(app =>
@@ -1419,7 +1480,7 @@ export class App implements OnInit, OnDestroy {
           }
         });
     } else {
-      this.http.post<any>(`${this.apiUrl}/apps`, formData)
+      this.http.post<any>(`${this.apiUrl}/apps`, formData, this.getAuthOptions())
         .subscribe({
           next: (createdApp) => {
             this.apps = [...this.apps, createdApp];
@@ -1510,7 +1571,7 @@ export class App implements OnInit, OnDestroy {
       this.selectedProfileApps = this.getAppsForProfileView(this.selectedProfileForAppsView.id);
     }
 
-    this.http.delete(`${this.apiUrl}/apps/${id}`)
+    this.http.delete(`${this.apiUrl}/apps/${id}`, this.getAuthOptions())
       .subscribe({
         next: () => {
           this.showSuccess(this.currentLanguage === 'ar'
@@ -1533,7 +1594,7 @@ export class App implements OnInit, OnDestroy {
   }
 
   loadProfileApps() {
-    this.http.get<any[]>(`${this.apiUrl}/profile-apps`)
+    this.http.get<any[]>(`${this.apiUrl}/profile-apps`, this.getAuthOptions())
       .subscribe({
         next: (data) => {
           this.profileApps = data;
@@ -1565,7 +1626,7 @@ export class App implements OnInit, OnDestroy {
       this.selectedProfileApps = this.getAppsForProfileView(this.selectedProfileForAppsView.id);
     }
 
-    this.http.delete(`${this.apiUrl}/profile-apps/${id}`)
+    this.http.delete(`${this.apiUrl}/profile-apps/${id}`, this.getAuthOptions())
       .subscribe({
         next: () => {
           this.showSuccess(this.currentLanguage === 'ar'
@@ -1587,7 +1648,7 @@ export class App implements OnInit, OnDestroy {
   }
 
   loadDeviceProfiles() {
-    this.http.get<any[]>(`${this.apiUrl}/device-profiles`)
+    this.http.get<any[]>(`${this.apiUrl}/device-profiles`, this.getAuthOptions())
       .subscribe({
         next: (data) => {
           this.deviceProfiles = data;
@@ -1601,7 +1662,7 @@ export class App implements OnInit, OnDestroy {
   }
 
   loadAlerts() {
-    this.http.get<any[]>(`${this.apiUrl}/alerts`)
+    this.http.get<any[]>(`${this.apiUrl}/alerts`, this.getAuthOptions())
       .subscribe({
         next: (data) => {
           this.alerts = data;
@@ -1629,7 +1690,8 @@ export class App implements OnInit, OnDestroy {
 
     this.http.put<any>(
       `${this.apiUrl}/alerts/${alert.id}/response`,
-      body
+      body,
+      this.getAuthOptions()
     ).subscribe({
       next: (updatedAlert) => {
         this.alerts = this.alerts.map(item =>
@@ -1656,7 +1718,8 @@ export class App implements OnInit, OnDestroy {
 
     this.http.put<any>(
       `${this.apiUrl}/alerts/${alert.id}/response`,
-      body
+      body,
+      this.getAuthOptions()
     ).subscribe({
       next: (updatedAlert) => {
         this.alerts = this.alerts.map(item =>
@@ -1687,7 +1750,8 @@ export class App implements OnInit, OnDestroy {
 
     this.http.put<any>(
       `${this.apiUrl}/alerts/${alert.id}/response`,
-      body
+      body,
+      this.getAuthOptions()
     ).subscribe({
       next: (updatedAlert) => {
         this.alerts = this.alerts.map(item =>
@@ -1721,7 +1785,7 @@ export class App implements OnInit, OnDestroy {
       !this.sameId(alert.id, id)
     );
 
-    this.http.delete(`${this.apiUrl}/alerts/${id}`)
+    this.http.delete(`${this.apiUrl}/alerts/${id}`, this.getAuthOptions())
       .subscribe({
         next: () => {
           this.showSuccess(this.currentLanguage === 'ar'
